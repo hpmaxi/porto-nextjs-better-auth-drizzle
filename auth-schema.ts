@@ -81,3 +81,20 @@ export const walletAddress = pgTable("wallet_address", {
   isPrimary: boolean("is_primary"),
   createdAt: timestamp("created_at").notNull(),
 });
+
+export const userKeys = pgTable("user_keys", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  publicKey: text("public_key").notNull(),
+  privateKey: text("private_key").notNull(),
+  address: text("address").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});

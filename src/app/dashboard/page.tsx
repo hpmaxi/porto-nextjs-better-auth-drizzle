@@ -9,17 +9,25 @@ import { useSession } from "@/hooks/useSession";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useTRPC } from "../trpc/client";
-import { useDisconnect } from "wagmi";
+import { useDisconnect, useWalletClient } from "wagmi";
 
 export default function Dashboard() {
   const trpc = useTRPC();
   const session = useSession();
   const router = useRouter();
   const { disconnectAsync } = useDisconnect();
+  const { data: walletClient } = useWalletClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const queryClient = useQueryClient();
+
+  // Get keys query
+  const {
+    data: keys,
+    isLoading: keysLoading,
+    refetch: refetchKeys,
+  } = useQuery(trpc.getKeys.queryOptions());
   // tRPC queries
   const {
     data: profile,
@@ -42,6 +50,44 @@ export default function Dashboard() {
     ...trpc.updateProfile.mutationOptions(),
     onSuccess: async () => {
       setIsEditing(false);
+      await queryClient.invalidateQueries();
+    },
+  });
+
+  const generateKeyMutation = useMutation({
+    ...trpc.generateKey.mutationOptions(),
+    onSuccess: async (newKey) => {
+      console.log("Generated key:", newKey);
+
+      if (walletClient && newKey.publicKey) {
+        try {
+          const USDC_BASE_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+
+          // TODO type for calls not present.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const permissions = await (walletClient as any).request({
+            method: 'wallet_grantPermissions',
+            params: [{
+              expiry: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+              key: {
+                type: 'secp256k1' as const,
+                publicKey: newKey.publicKey as `0x${string}`
+              },
+              permissions: {
+                calls: [{
+                  address: USDC_BASE_SEPOLIA as `0x${string}`,
+                  signature: 'transfer(address,uint256)',
+                }]
+              }
+            }]
+          });
+
+          console.log("Permissions granted:", permissions);
+        } catch (error) {
+          console.error("Failed to grant permissions:", error);
+        }
+      }
+
       await queryClient.invalidateQueries();
     },
   });
@@ -125,6 +171,80 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Profile Keys</h3>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => generateKeyMutation.mutate()}
+                  disabled={generateKeyMutation.isPending}
+                  variant="default"
+                  size="sm"
+                >
+                  {generateKeyMutation.isPending ? "Generating..." : "Generate Key"}
+                </Button>
+                <Button
+                  onClick={() => refetchKeys()}
+                  disabled={keysLoading}
+                  variant="outline"
+                  size="sm"
+                >
+                  {keysLoading ? "Loading..." : "Refresh Keys"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Display generated keys */}
+            <div className="space-y-3">
+              {keysLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ) : keys && keys.length > 0 ? (
+                keys.map((key) => (
+                  <div
+                    key={key.id}
+                    className="border rounded-lg p-4 bg-white dark:bg-gray-800"
+                  >
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-medium text-sm">Public Key:</span>
+                        <span className="font-mono text-xs ml-2 break-all">
+                          {key.publicKey}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-sm">Address:</span>
+                        <span className="font-mono text-xs ml-2">
+                          {key.address}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium text-sm">Status:</span>
+                          <span className={`ml-2 text-xs px-2 py-1 rounded ${key.isActive
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                            }`}>
+                            {key.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Created: {new Date(key.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">
+                  No keys generated yet. Click "Generate Key" to create your first key.
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* Profile Section */}
           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8">

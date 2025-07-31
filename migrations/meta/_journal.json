@@ -15,6 +15,27 @@
       "when": 1753605493803,
       "tag": "0001_superb_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753908366012,
+      "tag": "0002_burly_marten_broadcloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1753910064100,
+      "tag": "0003_sweet_albert_cleary",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1753966844724,
+      "tag": "0004_eminent_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }

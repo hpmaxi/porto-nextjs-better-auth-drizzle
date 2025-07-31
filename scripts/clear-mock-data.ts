@@ -5,6 +5,7 @@ import {
   walletAddress,
   account,
   verification,
+  userKeys,
 } from "../src/server/db/schema.db";
 import { sql } from "drizzle-orm";
 
@@ -13,6 +14,9 @@ async function clearMockData() {
 
   try {
     // Delete in order to respect foreign key constraints
+    console.log("Deleting user keys...");
+    await db.delete(userKeys);
+
     console.log("Deleting wallet addresses...");
     await db.delete(walletAddress);
 
@@ -38,11 +42,15 @@ async function clearMockData() {
     const [walletCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(walletAddress);
+    const [userKeysCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(userKeys);
 
     console.log("\nData cleared successfully!");
     console.log(`Remaining users: ${userCount.count}`);
     console.log(`Remaining sessions: ${sessionCount.count}`);
     console.log(`Remaining wallets: ${walletCount.count}`);
+    console.log(`Remaining user keys: ${userKeysCount.count}`);
   } catch (error) {
     console.error("Error clearing data:", error);
     process.exit(1);

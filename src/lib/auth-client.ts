@@ -16,6 +16,7 @@ export const authClient = createAuthClient({
 export const siweNonce = async (
   walletAddress: string,
 ): Promise<{ nonce: string }> => {
+  console.log({ walletAddress, env: clientEnv.NEXT_PUBLIC_BETTER_AUTH_URL })
   const response = await fetch(
     `${clientEnv.NEXT_PUBLIC_BETTER_AUTH_URL}/siwe/nonce`,
     {
