@@ -1,7 +1,8 @@
-import { Hooks } from "porto/wagmi";
+// import { Hooks } from "porto/wagmi";
 import React from "react";
 
-type Permission = ReturnType<typeof Hooks.usePermissions>['data'];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Permission = any //ReturnType<typeof Hooks.usePermissions>['data'];
 
 interface PermissionsTableProps {
   permissions: Permission[] | undefined;

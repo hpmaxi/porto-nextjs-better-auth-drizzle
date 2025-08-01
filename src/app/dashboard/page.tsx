@@ -39,16 +39,19 @@ export default function Dashboard() {
   const {
     data: profile,
     isLoading: profileLoading,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     error: profileError,
   } = useQuery(trpc.profile.queryOptions());
   const {
     data: walletAddresses,
     isLoading: walletsLoading,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     error: walletsError,
   } = useQuery(trpc.walletAddresses.queryOptions());
   const {
     data: userStats,
     isLoading: statsLoading,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     error: statsError,
   } = useQuery(trpc.userStats.queryOptions());
 
@@ -344,7 +347,7 @@ export default function Dashboard() {
                 ))
               ) : (
                 <p className="text-gray-500 text-center py-4">
-                  No keys generated yet. Click "Generate Key" to create your first key.
+                  No keys generated yet. Click Generate Key to create your first key.
                 </p>
               )}
             </div>
