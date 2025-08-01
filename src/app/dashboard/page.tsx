@@ -70,6 +70,7 @@ export default function Dashboard() {
     onSuccess: async (newKey) => {
       console.log("Generated key:", newKey);
 
+      // TODO allow to select key
       if (walletClient && newKey.publicKey) {
         try {
 
