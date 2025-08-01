@@ -10,6 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useTRPC } from "../trpc/client";
 import { useDisconnect, useWalletClient } from "wagmi";
+import { clientEnv } from "@/env/clientEnv";
+import { Hooks } from "porto/wagmi";
+import { PermissionsTable } from "@/components/features/PermissionsTable";
+
 
 export default function Dashboard() {
   const trpc = useTRPC();
@@ -57,6 +61,10 @@ export default function Dashboard() {
     },
   });
 
+  const grantPermissions = Hooks.useGrantPermissions();
+  const allPermissions = Hooks.usePermissions();
+
+
   const generateKeyMutation = useMutation({
     ...trpc.generateKey.mutationOptions(),
     onSuccess: async (newKey) => {
@@ -64,25 +72,26 @@ export default function Dashboard() {
 
       if (walletClient && newKey.publicKey) {
         try {
-          const USDC_BASE_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 
-          // TODO type for calls not present.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const permissions = await (walletClient as any).request({
-            method: 'wallet_grantPermissions',
-            params: [{
-              expiry: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-              key: {
-                type: 'secp256k1' as const,
-                publicKey: newKey.publicKey as `0x${string}`
-              },
-              permissions: {
-                calls: [{
-                  address: USDC_BASE_SEPOLIA as `0x${string}`,
-                  signature: 'transfer(address,uint256)',
-                }]
-              }
-            }]
+          const permissions = await grantPermissions.mutateAsync({
+            expiry: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+            key: {
+              type: 'secp256k1' as const,
+              publicKey: newKey.publicKey as `0x${string}`
+            },
+            permissions: {
+              calls: [{
+                to: clientEnv.NEXT_PUBLIC_CONTRACT as `0x${string}`,
+                signature: 'transfer(address,uint256)',
+              }],
+              spend: [
+                {
+                  limit: BigInt(1000000000),
+                  period: 'hour',
+                  token: clientEnv.NEXT_PUBLIC_FEE_TOKEN as `0x${string}`,
+                },
+              ]
+            }
           });
 
           console.log("Permissions granted:", permissions);
@@ -199,6 +208,13 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+
+          {/* Permissions Table */}
+          <PermissionsTable
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            permissions={allPermissions?.data as unknown as any} // TODO FIXME
+            isLoading={allPermissions?.isLoading}
+          />
 
           {/* USDC Transfer Section */}
           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8">

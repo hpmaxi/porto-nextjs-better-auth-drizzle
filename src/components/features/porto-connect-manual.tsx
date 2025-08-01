@@ -14,10 +14,11 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/hooks/useSession";
+import { clientEnv } from "@/env/clientEnv";
 
 /**
- * Used until we fix the porto connect issue with SIWE 
- * @returns 
+ * Used until we fix the porto connect issue with SIWE
+ * @returns
  */
 export function PortoConnectManual() {
   const account = useAccount();
@@ -85,10 +86,32 @@ export function PortoConnectManual() {
   // State 1: Not connected to wallet
   if (!account.address) {
     return (
-      <Button onClick={() => connect({ connector })} size="lg">
+      <Button onClick={() => connect({
+        connector, capabilities: {
+          grantPermissions: {
+            expiry: Math.floor(Date.now() / 1_000) + 60 * 60, // 1 hour
+            feeLimit: {
+              currency: 'USD',
+              value: '1',
+            },
+            permissions: {
+              calls: [{
+                to: clientEnv.NEXT_PUBLIC_CONTRACT as `0x${string}`,
+              }],
+              spend: [
+                {
+                  limit: BigInt(1000000000),
+                  period: 'hour',
+                  token: clientEnv.NEXT_PUBLIC_FEE_TOKEN as `0x${string}`,
+                },
+              ]
+            }
+          }
+        }
+      })} size="lg" >
         <Wallet className="h-5 w-5" />
-        Connect Porto Wallet
-      </Button>
+        Connect Porto Wallet (manual)
+      </Button >
     );
   }
 

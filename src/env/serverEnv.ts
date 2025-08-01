@@ -9,6 +9,8 @@ export const serverEnv = createEnv({
       .default("development"),
     BETTER_AUTH_SECRET: z.string(),
     BETTER_AUTH_URL: z.string().url(),
+    FEE_TOKEN: z.string(),
+    CONTRACT: z.string(),
   },
   experimental__runtimeEnv: process.env,
 });

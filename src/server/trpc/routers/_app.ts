@@ -2,10 +2,11 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "../init";
 import { db } from "@/server/db/drizzle";
 import { user, walletAddress, userKeys } from "@/server/db/schema.db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { Key, Porto, ServerActions } from "porto";
 import { ServerClient } from "porto/viem";
 import { parseUnits, encodeFunctionData } from "viem";
+import { serverEnv } from "@/env/serverEnv";
 
 export const appRouter = createTRPCRouter({
   hello: publicProcedure
@@ -42,9 +43,17 @@ export const appRouter = createTRPCRouter({
     const key = Key.createSecp256k1({
       role: 'session', expiry: Date.now() + 86400000, permissions: {
         calls: [{
-          to: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`,
+          to: serverEnv.CONTRACT as `0x${string}`,
           signature: 'transfer(address,uint256)',
-        }]
+        }],
+        spend: [
+          {
+            limit: BigInt(1000000000),
+            period: 'hour',
+            token: serverEnv.FEE_TOKEN as `0x${string}`,
+          },
+        ]
+
       }
     });
 
@@ -109,7 +118,7 @@ export const appRouter = createTRPCRouter({
       })
       .from(userKeys)
       .where(eq(userKeys.userId, userId))
-      .orderBy(userKeys.createdAt);
+      .orderBy(desc(userKeys.createdAt));
 
     return keys;
   }),
