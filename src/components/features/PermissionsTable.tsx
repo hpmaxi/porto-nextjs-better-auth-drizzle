@@ -1,8 +1,9 @@
-// import { Hooks } from "porto/wagmi";
+import { Hooks } from "porto/wagmi";
 import React from "react";
+import { WagmiConfig } from "@/config/wagmiConfig";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Permission = any //ReturnType<typeof Hooks.usePermissions>['data'];
+type Permissions = ReturnType<typeof Hooks.usePermissions<WagmiConfig>>['data'];
+type Permission = NonNullable<Permissions>[number]
 
 interface PermissionsTableProps {
   permissions: Permission[] | undefined;
@@ -48,7 +49,7 @@ export const PermissionsTable: React.FC<PermissionsTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {permissions.map((permission, index) => (
+            {permissions?.filter(permission => permission != null).map((permission, index) => (
               <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                   <span className="font-mono text-xs break-all">
@@ -67,7 +68,7 @@ export const PermissionsTable: React.FC<PermissionsTableProps> = ({
                   )) || 'None'}
                 </td>
                 <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                  {permission.permissions?.spend?.map((spend, spendIndex) => (
+                  {permission?.permissions?.spend?.filter(spend => spend != null).map((spend, spendIndex) => (
                     <div key={spendIndex} className="text-xs">
                       <div><strong>Limit:</strong> {spend.limit?.toString()}</div>
                       <div><strong>Period:</strong> {spend.period}</div>

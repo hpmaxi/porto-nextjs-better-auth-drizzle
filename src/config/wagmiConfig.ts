@@ -17,6 +17,8 @@ export function getConfig() {
   });
 }
 
+export type WagmiConfig = ReturnType<typeof getConfig>;
+
 declare module "wagmi" {
   interface Register {
     config: ReturnType<typeof getConfig>;
