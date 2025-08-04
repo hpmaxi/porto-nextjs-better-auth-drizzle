@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clientEnv } from './env/clientEnv'
+import { serverEnv } from './env/serverEnv'
 
-const allowedOrigins = ['http://localhost:3000', 'https://stg.id.porto.sh', "https://localhost:3000", clientEnv.NEXT_PUBLIC_APP_URL]
+const allowedOrigins = ['http://localhost:3000', 'https://stg.id.porto.sh', "https://localhost:3000", serverEnv.API_URL]
 
 const corsOptions = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',

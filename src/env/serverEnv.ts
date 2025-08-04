@@ -11,6 +11,7 @@ export const serverEnv = createEnv({
     BETTER_AUTH_URL: z.string().url(),
     FEE_TOKEN: z.string(),
     CONTRACT: z.string(),
+    API_URL: z.string().url(),
   },
   experimental__runtimeEnv: process.env,
 });
